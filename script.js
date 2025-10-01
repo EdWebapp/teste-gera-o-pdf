@@ -229,8 +229,9 @@ function exportToPDF() {
         chartContainer.style.boxShadow = originalBoxShadow; 
 
         // --- GERAÇÃO DO PDF ---
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
+        // CORRIGIDO: Acessa o construtor diretamente via window.jspdf.jsPDF, que é a forma mais robusta 
+        // de instanciar o jsPDF quando o UMD está sendo usado.
+        const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
         
         const pageTitle = document.getElementById('report-header').textContent;
         const filename = pageTitle.replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '') + '.pdf';
@@ -249,6 +250,7 @@ function exportToPDF() {
 
         // Adiciona Tabela
         const tableElement = document.getElementById('data-table');
+        // O método autoTable só funciona se o plugin jspdf-autotable for carregado
         doc.autoTable({
             startY: y_offset,
             html: tableElement,
@@ -284,6 +286,7 @@ function exportToPDF() {
 function waitForPdfLibraries() {
     return new Promise((resolve) => {
         const check = setInterval(() => {
+            // Verifica a disponibilidade do objeto jsPDF e do html2canvas
             if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') {
                 clearInterval(check);
                 resolve(); 
