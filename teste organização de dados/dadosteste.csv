@@ -1,0 +1,11 @@
+ID_Transacao,Data,Produto,Valor,Quantidade,Regiao,Status
+1001,2024-05-01,Notebook A,3500.00,1,Sudeste,Entregue
+1002,2024-05-01,Mouse Pad,45.50,5,Sul,Pendente
+1003,2024-05-02,Monitor 27',1250.00,2,Nordeste,Entregue
+1004,2024-05-02,Teclado Mecânico,280.00,1,Sudeste,Entregue
+1005,2024-05-03,Headset Gamer,180.99,3,Centro-Oeste,Entregue
+1006,2024-05-03,Notebook A,3500.00,1,Sudeste,Entregue
+1007,2024-05-04,Webcam HD,120.00,4,Sul,Entregue
+1008,2024-05-04,Mouse Pad,45.50,2,Nordeste,Pendente
+1009,2024-05-05,Monitor 27',1250.00,1,Centro-Oeste,Entregue
+1010,2024-05-05,Teclado Mecânico,280.00,3,Sudeste,Entregue
