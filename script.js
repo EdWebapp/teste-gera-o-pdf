@@ -1,7 +1,7 @@
-// script.js - MODIFICADO PARA SUPORTE A DOIS GRÁFICOS E PDF MULTI-CHART
+// script.js - VERSÃO FINAL COM MULTI-CHART, FILTRAGEM E ORDENAÇÃO
 
 // =========================================================
-// 1. DICIONÁRIO DE DADOS (Sem Alterações)
+// 1. DICIONÁRIO E VARIÁVEIS DE ESTADO
 // =========================================================
 const DATABASE = {
     'vendas': {
@@ -37,10 +37,13 @@ Email Mkt,4500,150,60`
 };
 
 let myChart = null; 
-let myChart2 = null; // NOVO: Variável para o segundo gráfico
+let myChart2 = null; 
+
+let allData = []; // Armazena os dados brutos originais (para filtro/sort)
+let currentSort = { column: null, direction: 'asc' }; // Estado atual da ordenação
 
 // =========================================================
-// 2. FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO (Pequena Alteração)
+// 2. FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
 // =========================================================
 async function initializeReportPage() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -82,9 +85,15 @@ async function initializeReportPage() {
             dynamicTyping: true,
             skipEmptyLines: true,
             complete: function(results) {
-                const data = results.data.filter(row => Object.values(row).some(val => val !== null && val !== ''));
-                displayTable(data); 
-                renderCharts(data, baseName); // Chamada para a nova função de renderização
+                // Filtra linhas nulas
+                allData = results.data.filter(row => Object.values(row).some(val => val !== null && val !== ''));
+                
+                // Exibe gráficos e tabela
+                renderCharts(allData, baseName); 
+                displayTable(allData); 
+                
+                // NOVO: Adiciona listeners de ordenação e pesquisa
+                attachTableListeners();
             },
             error: function(error) {
                 console.error("Erro no Papa Parse:", error);
@@ -96,53 +105,123 @@ async function initializeReportPage() {
 }
 
 // =========================================================
-// 3. FUNÇÃO DE VISUALIZAÇÃO DA TABELA (Sem Alterações)
+// 3. FUNÇÕES DE FILTRAGEM E ORDENAÇÃO
+// =========================================================
+
+/**
+ * Filtra os dados com base no texto de pesquisa.
+ */
+function filterData(data, searchTerm) {
+    if (!searchTerm) {
+        return data;
+    }
+    const lowerCaseSearch = searchTerm.toLowerCase();
+    
+    return data.filter(row => {
+        return Object.values(row).some(value => 
+            String(value).toLowerCase().includes(lowerCaseSearch)
+        );
+    });
+}
+
+/**
+ * Ordena os dados com base na coluna e direção atuais.
+ */
+function sortData(data, column, direction) {
+    
+    return data.sort((a, b) => {
+        const valA = a[column];
+        const valB = b[column];
+        
+        let comparison = 0;
+
+        if (typeof valA === 'number' && typeof valB === 'number') {
+            comparison = valA - valB;
+        } else {
+            const strA = String(valA || '').toLowerCase();
+            const strB = String(valB || '').toLowerCase();
+            comparison = strA.localeCompare(strB);
+        }
+
+        return direction === 'asc' ? comparison : comparison * -1;
+    });
+}
+
+/**
+ * Aplica filtros e ordenação e redesenha a tabela.
+ */
+function updateTableDisplay() {
+    const searchInput = document.getElementById('data-search-input');
+    const searchTerm = searchInput ? searchInput.value : '';
+
+    // 1. Aplicar Filtro
+    let dataToDisplay = filterData([...allData], searchTerm);
+
+    // 2. Aplicar Ordenação
+    if (currentSort.column) {
+        dataToDisplay = sortData(dataToDisplay, currentSort.column, currentSort.direction);
+    }
+
+    // 3. Redesenhar Tabela
+    displayTable(dataToDisplay);
+}
+
+
+// =========================================================
+// 4. FUNÇÃO DE VISUALIZAÇÃO DA TABELA
 // =========================================================
 function displayTable(data) {
     const table = document.getElementById('data-table');
     table.innerHTML = ''; 
     
-    if (data.length === 0 || !data[0] || Object.keys(data[0]).length === 0) {
-        table.innerHTML = '<tr><td>Nenhum dado encontrado ou CSV vazio.</td></tr>';
+    if (data.length === 0 || !allData[0] || Object.keys(allData[0]).length === 0) {
+        if (allData.length > 0) {
+            table.innerHTML = '<tr><td colspan="' + Object.keys(allData[0]).length + '">Nenhum resultado encontrado.</td></tr>';
+        } else {
+            table.innerHTML = '<tr><td>Nenhum dado encontrado ou CSV vazio.</td></tr>';
+        }
         return;
     }
     
+    const columnNames = Object.keys(allData[0]);
+
+    // Cria e insere o cabeçalho (Thead)
     let thead = table.createTHead();
     let row = thead.insertRow();
-    Object.keys(data[0]).forEach(key => {
+    
+    columnNames.forEach(key => {
         let th = document.createElement('th');
         th.textContent = key;
+        
+        // Adiciona classe 'sortable' e o estado atual da ordenação
+        th.classList.add('sortable');
+        if (currentSort.column === key) {
+            th.classList.add(currentSort.direction);
+        }
+        
         row.appendChild(th);
     });
     
+    // Cria e insere o corpo da tabela (Tbody)
     let tbody = table.createTBody();
     data.forEach(item => {
         let row = tbody.insertRow();
-        Object.values(item).forEach(value => {
+        columnNames.forEach(key => {
             let cell = row.insertCell(); 
-            cell.textContent = value !== null && value !== undefined ? value : ''; 
+            cell.textContent = item[key] !== null && item[key] !== undefined ? item[key] : ''; 
         });
     });
 }
 
-// =========================================================
-// 4. FUNÇÃO DE GERAÇÃO DOS GRÁFICOS (COMPLETAMENTE REFATORADA)
-// =========================================================
 
-/**
- * Função Wrapper para renderizar todos os gráficos necessários.
- */
+// =========================================================
+// 5. FUNÇÃO DE GERAÇÃO DOS GRÁFICOS (MULTI-CHART)
+// =========================================================
 function renderCharts(data, baseName) {
-    // Gráfico 1: Primário (Coluna 1 vs Coluna 2) - Tipo Bar
     generateChart(data, baseName, 'myChart', 'bar'); 
-
-    // Gráfico 2: Secundário (Agregação alternativa) - Tipo Doughnut (Pizza)
     generateChart(data, baseName, 'myChart2', 'doughnut'); 
 }
 
-/**
- * Função centralizada para configurar e renderizar um gráfico.
- */
 function generateChart(data, baseName, canvasId, chartType) {
     
     let chartInstance = (canvasId === 'myChart') ? myChart : myChart2;
@@ -154,10 +233,6 @@ function generateChart(data, baseName, canvasId, chartType) {
     if (data.length < 2 || !data[0]) return;
 
     const columnNames = Object.keys(data[0]);
-
-    // ----------------------------------------------------
-    // 1. Definição das Colunas e Estilos
-    // ----------------------------------------------------
 
     let labelColForChart, valueColForChart;
     let titlePrefix;
@@ -177,20 +252,16 @@ function generateChart(data, baseName, canvasId, chartType) {
         // Lógica para o novo gráfico (Agregação Secundária)
         
         if (baseName === 'vendas' && columnNames.includes('Valor') && columnNames.includes('Regiao')) {
-            // Regra Específica para Vendas: Valor Agregado por Região
             labelColForChart = 'Regiao';
             valueColForChart = 'Valor';
         } else if (columnNames.length > 2) {
-            // Regra Geral: Coluna 1 (Rótulo) vs Coluna 3 (Valor)
             labelColForChart = columnNames[0]; 
             valueColForChart = columnNames[2]; 
         } else {
-            // Não há dados suficientes para o segundo gráfico
-            return;
+            return; // Não há dados suficientes para o segundo gráfico
         }
 
         titlePrefix = 'Visualização Secundária:';
-        // Cores Múltiplas para Gráfico de Pizza/Doughnut
         backgroundColor = [
             'rgba(255, 99, 132, 0.7)', 
             'rgba(255, 206, 86, 0.7)', 
@@ -202,9 +273,6 @@ function generateChart(data, baseName, canvasId, chartType) {
         borderColor = 'rgba(255, 255, 255, 1)'; 
     }
 
-    // ----------------------------------------------------
-    // 2. Agregação dos Dados
-    // ----------------------------------------------------
     const aggregatedData = data.reduce((acc, row) => {
         const key = String(row[labelColForChart]);
         const value = Number(row[valueColForChart]);
@@ -217,9 +285,6 @@ function generateChart(data, baseName, canvasId, chartType) {
     const labels = Object.keys(aggregatedData);
     const values = Object.values(aggregatedData);
 
-    // ----------------------------------------------------
-    // 3. Renderização do Chart.js
-    // ----------------------------------------------------
     const ctx = document.getElementById(canvasId).getContext('2d');
     
     chartInstance = new Chart(ctx, { 
@@ -237,7 +302,7 @@ function generateChart(data, baseName, canvasId, chartType) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: (chartType === 'doughnut') ? {} : { // Sem scales para doughnut
+            scales: (chartType === 'doughnut') ? {} : { 
                 y: { beginAtZero: true, title: { display: true, text: valueColForChart } },
                 x: { title: { display: true, text: labelColForChart } }
             },
@@ -247,14 +312,13 @@ function generateChart(data, baseName, canvasId, chartType) {
                     text: `${titlePrefix} ${valueColForChart} por ${labelColForChart}`
                 },
                 legend: {
-                    display: (chartType === 'doughnut'), // Exibe legenda apenas para doughnut
+                    display: (chartType === 'doughnut'), 
                     position: 'right',
                 }
             }
         }
     });
 
-    // Atualiza a variável global
     if (canvasId === 'myChart') {
         myChart = chartInstance;
     } else {
@@ -264,7 +328,7 @@ function generateChart(data, baseName, canvasId, chartType) {
 
 
 // =========================================================
-// 5. FUNÇÃO DE EXPORTAÇÃO DE PDF (MODIFICADA para Multi-Chart)
+// 6. FUNÇÃO DE EXPORTAÇÃO DE PDF (MODIFICADA para Multi-Chart)
 // =========================================================
 function exportToPDF() {
     
@@ -273,22 +337,18 @@ function exportToPDF() {
         return;
     }
     
-    // Lista de todos os gráficos a serem processados
     const chartsToProcess = [
         { chart: myChart, canvasId: 'myChart' },
         { chart: myChart2, canvasId: 'myChart2' }
-    ].filter(item => item.chart !== null); // Remove gráficos nulos (se o myChart2 não foi gerado)
+    ].filter(item => item.chart !== null);
 
-    // Variáveis de Estado para Restauração
     const originalStates = [];
 
     // --- PRÉ-CAPTURA: Estabilização do Canvas e Estilo ---
     chartsToProcess.forEach(item => {
         const chart = item.chart;
-        // Pega o container usando o novo atributo data-chart-id do HTML
         const container = document.querySelector(`[data-chart-id="${item.canvasId}"]`); 
 
-        // Salva estados originais
         originalStates.push({
             chart: chart,
             container: container,
@@ -296,7 +356,6 @@ function exportToPDF() {
             originalResponsive: chart.options.responsive
         });
         
-        // Aplica modificações (remove sombra, desativa responsividade)
         try {
             if (container) {
                 container.style.boxShadow = 'none';
@@ -308,7 +367,6 @@ function exportToPDF() {
         }
     });
 
-    // Função assíncrona para capturar e adicionar cada gráfico
     async function captureAndAddCharts(doc, y_offset) {
         
         let current_y_offset = y_offset;
@@ -318,7 +376,6 @@ function exportToPDF() {
 
             if (chartCanvas) {
                 doc.setFontSize(14);
-                // Adiciona um título descritivo antes do gráfico
                 doc.text(`Gráfico ${item.canvasId === 'myChart' ? 'Primário' : 'Secundário'}`, 10, current_y_offset);
                 current_y_offset += 10;
                 
@@ -330,7 +387,6 @@ function exportToPDF() {
                 const imgWidth = 190; 
                 const imgHeight = canvas.height * imgWidth / canvas.width;
 
-                // Adiciona uma nova página se o gráfico não couber
                 if (current_y_offset + imgHeight > doc.internal.pageSize.height - 20) {
                     doc.addPage();
                     current_y_offset = 20;
@@ -355,11 +411,9 @@ function exportToPDF() {
     
     let y_offset = 30; 
 
-    // Captura e Adiciona Gráficos
     captureAndAddCharts(doc, y_offset).then((new_y_offset) => {
         y_offset = new_y_offset;
 
-        // Adiciona Tabela
         const tableElement = document.getElementById('data-table');
         
         if (y_offset > doc.internal.pageSize.height - 40) {
@@ -400,8 +454,36 @@ function exportToPDF() {
 }
 
 // =========================================================
-// 6. LIGAÇÃO DE EVENTOS (Sem Alterações)
+// 7. LIGAÇÃO DE EVENTOS
 // =========================================================
+
+function attachTableListeners() {
+    const tableHeaders = document.querySelectorAll('#data-table th');
+    
+    // 1. Listener para ORDENAÇÃO
+    tableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = header.textContent;
+            
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            updateTableDisplay(); 
+        });
+    });
+    
+    // 2. Listener para FILTRAGEM (Pesquisa)
+    const searchInput = document.getElementById('data-search-input');
+    if (searchInput) {
+        // Usa 'input' para feedback imediato ou 'keyup' (como no último passo)
+        searchInput.addEventListener('input', updateTableDisplay); 
+    }
+}
+
 
 function waitForPdfLibraries() {
     return new Promise((resolve) => {
