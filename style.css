@@ -1,34 +1,48 @@
-/* style.css */
+/* style.css - MODERNO E PROFISSIONAL */
 
-/* Configurações básicas e tipografia */
+/* --------------------------------------------------- */
+/* 1. CONFIGURAÇÕES BÁSICAS E TIPOGRAFIA */
+/* --------------------------------------------------- */
 body {
-    font-family: 'Arial', sans-serif;
-    margin: 40px;
-    background-color: #f4f7f9;
+    /* Fonte mais moderna e neutra */
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    margin: 0; /* Remove margem padrão */
+    padding: 40px; 
+    background-color: #f4f7f9; /* Fundo levemente off-white */
     color: #333;
     line-height: 1.6;
+    min-height: 100vh;
 }
 
 h1 {
-    color: #0056b3;
-    border-bottom: 2px solid #0056b3;
-    padding-bottom: 10px;
-    margin-bottom: 30px;
+    color: #004aad; /* Azul corporativo */
+    /* Remove a borda agressiva, usa padding e margem para separação */
+    padding-bottom: 5px; 
+    margin-bottom: 10px;
+    font-size: 2.2em;
+    font-weight: 600;
 }
 
 h2 {
-    color: #007bff;
+    color: #34495e; /* Cinza escuro para subtítulos */
     margin-top: 40px;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    border-left: 4px solid #004aad; /* Detalhe moderno */
+    padding-left: 15px;
 }
 
 hr {
     border: 0;
     height: 1px;
-    background-color: #ccc;
+    background-color: #e0e0e0;
     margin: 30px 0;
 }
 
-/* Estilo para os Botões e o novo contêiner */
+/* --------------------------------------------------- */
+/* 2. DASHBOARD E AÇÕES DE RELATÓRIO */
+/* --------------------------------------------------- */
+
 .button-container {
     display: flex;
     flex-wrap: wrap; 
@@ -37,28 +51,30 @@ hr {
 }
 
 .report-actions {
-    display: flex; /* Alinha o botão Voltar e Exportar */
+    display: flex; 
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
 .data-button {
-    padding: 15px 30px;
-    font-size: 1.1em;
-    font-weight: bold;
+    /* Novo estilo de botão: preenchido, bordas mais suaves e sombra refinada */
+    padding: 12px 25px;
+    font-size: 1.0em;
+    font-weight: 500;
     color: #fff;
-    background-color: #007bff;
+    background-color: #007bff; /* Azul primário */
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s;
-    min-width: 200px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
 }
 
 .data-button:hover {
     background-color: #0056b3;
     transform: translateY(-2px); 
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
 a {
@@ -67,8 +83,7 @@ a {
 }
 
 .back-link .data-button {
-    margin-bottom: 0;
-    background-color: #6c757d; 
+    background-color: #6c757d; /* Cinza para "Voltar" */
     min-width: 150px;
 }
 
@@ -76,65 +91,83 @@ a {
     background-color: #5a6268;
 }
 
-/* NOVO: Estilo para o botão de Exportar PDF */
+/* Estilo para o botão de Exportar PDF */
 .export-button {
-    background-color: #28a745; /* Cor verde */
+    background-color: #28a745; /* Verde para ação de sucesso/exportação */
 }
 
 .export-button:hover {
     background-color: #1e7e34;
 }
 
-/* Estilo para a Tabela e Gráfico */
+/* --------------------------------------------------- */
+/* 3. GRÁFICO E TABELA (Estilo de Cartão) */
+/* --------------------------------------------------- */
+
+.chart-container {
+    max-width: 100%; /* Ajuste para melhor responsividade */
+    min-height: 400px;
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffffff; /* Fundo branco puro */
+    border-radius: 12px; /* Cantos mais arredondados */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra mais sutil e espalhada */
+    position: relative; /* Necessário para o canvas */
+}
+
 #data-table {
     width: 100%;
     border-collapse: collapse; 
     margin-top: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Sombra mais sutil */
     background-color: #fff;
+    border-radius: 12px; /* Aplica borda arredondada à tabela (visível com overflow) */
+    overflow: hidden; /* Garante que os cantos arredondados do wrapper sejam respeitados */
 }
 
 #data-table th, #data-table td {
-    padding: 12px 15px;
+    padding: 15px 18px; /* Mais padding */
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #f0f0f0; /* Linha de separação mais clara */
 }
 
 #data-table th {
-    background-color: #e9ecef;
-    color: #333;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.9em;
+    background-color: #e9ecef; /* Cabeçalho mais claro */
+    color: #495057;
+    font-weight: 600;
+    text-transform: capitalize; /* Mais suave que uppercase */
+    font-size: 0.95em;
 }
 
 #data-table tr:hover {
-    background-color: #f1f1f1; 
+    background-color: #f7f7f7; /* Hover mais sutil */
 }
 
-.chart-container {
-    max-width: 900px;
-    min-height: 400px;
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
+/* --------------------------------------------------- */
+/* 4. RESPONSIVIDADE (Ajustes finos) */
+/* --------------------------------------------------- */
 
 @media (max-width: 768px) {
     body {
-        margin: 20px;
+        padding: 20px;
     }
+    
     .chart-container {
-        width: 100% !important; 
-        height: 300px;
-        padding: 10px;
+        min-height: 300px;
+        padding: 15px;
     }
-    .data-button, .export-button {
+    
+    .data-button {
         min-width: 100%;
+        font-size: 1.1em;
     }
+    
     .report-actions {
         flex-direction: column;
+        gap: 10px;
+    }
+    
+    .button-container {
+        gap: 15px;
     }
 }
