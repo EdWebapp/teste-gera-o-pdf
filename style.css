@@ -1,4 +1,4 @@
-/* style.css - VERSÃO FINAL: MODERNO E PROFISSIONAL COM ESTILOS DE FILTRO */
+/* style.css - VERSÃO FINAL COMPLETA */
 
 /* --------------------------------------------------- */
 /* 1. CONFIGURAÇÕES BÁSICAS E TIPOGRAFIA */
@@ -21,13 +21,21 @@ h1 {
     font-weight: 600;
 }
 
-h2 {
+h2, h3 { /* Adicionado h3 para os títulos dos cartões */
     color: #34495e;
     margin-top: 40px;
     margin-bottom: 15px;
     font-size: 1.5em;
     border-left: 4px solid #004aad; 
     padding-left: 15px;
+    line-height: 1.2;
+}
+
+h3 {
+    border-left: none; /* Remove a barra azul do h3 (dentro do cartão) */
+    padding-left: 0;
+    margin-top: 0;
+    font-size: 1.3em;
 }
 
 hr {
@@ -48,6 +56,39 @@ hr {
     margin-top: 30px;
 }
 
+/* NOVO: ESTILO DE CARTÃO PARA O DASHBOARD */
+.report-card {
+    /* Base do Cartão: Flutuante e Arredondado */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    padding: 25px;
+    text-align: center;
+    width: 250px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; /* Ajustado para espaçar o conteúdo */
+    min-height: 180px; /* Aumentado para melhor visual */
+    border: 1px solid #f0f0f0;
+}
+
+.report-card p {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.report-card:hover {
+    transform: translateY(-5px); 
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.report-card a {
+    width: 100%;
+}
+
 .report-actions {
     display: flex; 
     gap: 15px;
@@ -66,6 +107,13 @@ hr {
     transition: all 0.2s ease;
     min-width: 180px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+}
+
+.report-card .data-button {
+    /* Garante que o botão use a largura total do cartão */
+    width: 100%; 
+    min-width: unset;
+    margin-top: 5px; 
 }
 
 .data-button:hover {
@@ -140,17 +188,15 @@ a {
 }
 
 /* --------------------------------------------------- */
-/* 4. ESTILOS DE FILTRO/PESQUISA E ORDENAÇÃO (NOVOS) */
+/* 4. ESTILOS DE FILTRO/PESQUISA E ORDENAÇÃO */
 /* --------------------------------------------------- */
 
-/* Container de Filtro/Pesquisa */
 .data-filter-container {
     display: flex;
     justify-content: flex-end; 
     margin-bottom: 20px;
 }
 
-/* Campo de Pesquisa */
 .data-filter-container input[type="search"] {
     padding: 10px 15px;
     font-size: 1em;
@@ -167,7 +213,6 @@ a {
     outline: none;
 }
 
-/* Estilo para Ordenação na Tabela */
 #data-table th {
     cursor: pointer; 
     user-select: none;
@@ -175,7 +220,6 @@ a {
     padding-right: 30px !important; 
 }
 
-/* Ícones de Ordenação */
 #data-table th.sortable::after {
     content: '';
     position: absolute;
@@ -185,14 +229,12 @@ a {
     opacity: 0.3;
 }
 
-/* Estilo para Indicar Ordem Crescente (Ascendente) */
 #data-table th.asc::after {
     content: '▲';
     opacity: 1;
     color: #004aad;
 }
 
-/* Estilo para Indicar Ordem Decrescente (Descendente) */
 #data-table th.desc::after {
     content: '▼';
     opacity: 1;
@@ -200,7 +242,7 @@ a {
 }
 
 /* --------------------------------------------------- */
-/* 6. RESPONSIVIDADE */
+/* 5. RESPONSIVIDADE */
 /* --------------------------------------------------- */
 
 @media (max-width: 768px) {
@@ -224,7 +266,12 @@ a {
     }
     
     .button-container {
+        flex-direction: column; /* NOVO: Empilha cartões em telas pequenas */
         gap: 15px;
+    }
+
+    .report-card {
+        width: 100%; /* Cartão ocupa toda a largura em mobile */
     }
 
     .data-filter-container {
@@ -234,35 +281,4 @@ a {
     .data-filter-container input[type="search"] {
         width: 100%;
     }
-/* style.css - ADIÇÕES PARA ESTILO DE CARTÃO NO DASHBOARD */
-
-.report-card {
-    /* Base do Cartão: Flutuante e Arredondado */
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    padding: 25px;
-    text-align: center;
-    width: 250px; /* Largura fixa para os cartões */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 150px;
-    border: 1px solid #f0f0f0;
 }
-
-.report-card:hover {
-    transform: translateY(-5px); /* Efeito de elevação ao passar o mouse */
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-/* Redefine o estilo do botão dentro do cartão */
-.report-card .data-button {
-    /* Garante que o botão use a largura total do cartão (menos padding) */
-    width: 100%; 
-    min-width: unset;
-    margin-top: 15px; 
-}
-
