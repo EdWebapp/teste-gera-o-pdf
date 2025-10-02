@@ -1,22 +1,20 @@
-/* style.css - MODERNO E PROFISSIONAL */
+/* style.css - VERSÃO FINAL: MODERNO E PROFISSIONAL COM ESTILOS DE FILTRO */
 
 /* --------------------------------------------------- */
 /* 1. CONFIGURAÇÕES BÁSICAS E TIPOGRAFIA */
 /* --------------------------------------------------- */
 body {
-    /* Fonte mais moderna e neutra */
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    margin: 0; /* Remove margem padrão */
+    margin: 0; 
     padding: 40px; 
-    background-color: #f4f7f9; /* Fundo levemente off-white */
+    background-color: #f4f7f9; 
     color: #333;
     line-height: 1.6;
     min-height: 100vh;
 }
 
 h1 {
-    color: #004aad; /* Azul corporativo */
-    /* Remove a borda agressiva, usa padding e margem para separação */
+    color: #004aad;
     padding-bottom: 5px; 
     margin-bottom: 10px;
     font-size: 2.2em;
@@ -24,11 +22,11 @@ h1 {
 }
 
 h2 {
-    color: #34495e; /* Cinza escuro para subtítulos */
+    color: #34495e;
     margin-top: 40px;
     margin-bottom: 15px;
     font-size: 1.5em;
-    border-left: 4px solid #004aad; /* Detalhe moderno */
+    border-left: 4px solid #004aad; 
     padding-left: 15px;
 }
 
@@ -57,18 +55,17 @@ hr {
 }
 
 .data-button {
-    /* Novo estilo de botão: preenchido, bordas mais suaves e sombra refinada */
     padding: 12px 25px;
     font-size: 1.0em;
     font-weight: 500;
     color: #fff;
-    background-color: #007bff; /* Azul primário */
+    background-color: #007bff; 
     border: none;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 180px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
 }
 
 .data-button:hover {
@@ -83,7 +80,7 @@ a {
 }
 
 .back-link .data-button {
-    background-color: #6c757d; /* Cinza para "Voltar" */
+    background-color: #6c757d; 
     min-width: 150px;
 }
 
@@ -91,9 +88,8 @@ a {
     background-color: #5a6268;
 }
 
-/* Estilo para o botão de Exportar PDF */
 .export-button {
-    background-color: #28a745; /* Verde para ação de sucesso/exportação */
+    background-color: #28a745; 
 }
 
 .export-button:hover {
@@ -105,46 +101,106 @@ a {
 /* --------------------------------------------------- */
 
 .chart-container {
-    max-width: 100%; /* Ajuste para melhor responsividade */
+    max-width: 100%; 
     min-height: 400px;
     margin-top: 20px;
     padding: 20px;
-    background-color: #ffffff; /* Fundo branco puro */
-    border-radius: 12px; /* Cantos mais arredondados */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra mais sutil e espalhada */
-    position: relative; /* Necessário para o canvas */
+    background-color: #ffffff; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); 
+    position: relative; 
 }
 
 #data-table {
     width: 100%;
     border-collapse: collapse; 
     margin-top: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Sombra mais sutil */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); 
     background-color: #fff;
-    border-radius: 12px; /* Aplica borda arredondada à tabela (visível com overflow) */
-    overflow: hidden; /* Garante que os cantos arredondados do wrapper sejam respeitados */
+    border-radius: 12px; 
+    overflow: hidden; 
 }
 
 #data-table th, #data-table td {
-    padding: 15px 18px; /* Mais padding */
+    padding: 15px 18px; 
     text-align: left;
-    border-bottom: 1px solid #f0f0f0; /* Linha de separação mais clara */
+    border-bottom: 1px solid #f0f0f0; 
 }
 
 #data-table th {
-    background-color: #e9ecef; /* Cabeçalho mais claro */
+    background-color: #e9ecef; 
     color: #495057;
     font-weight: 600;
-    text-transform: capitalize; /* Mais suave que uppercase */
+    text-transform: capitalize; 
     font-size: 0.95em;
 }
 
 #data-table tr:hover {
-    background-color: #f7f7f7; /* Hover mais sutil */
+    background-color: #f7f7f7; 
 }
 
 /* --------------------------------------------------- */
-/* 4. RESPONSIVIDADE (Ajustes finos) */
+/* 4. ESTILOS DE FILTRO/PESQUISA E ORDENAÇÃO (NOVOS) */
+/* --------------------------------------------------- */
+
+/* Container de Filtro/Pesquisa */
+.data-filter-container {
+    display: flex;
+    justify-content: flex-end; 
+    margin-bottom: 20px;
+}
+
+/* Campo de Pesquisa */
+.data-filter-container input[type="search"] {
+    padding: 10px 15px;
+    font-size: 1em;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    width: 300px; 
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+}
+
+.data-filter-container input[type="search"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+/* Estilo para Ordenação na Tabela */
+#data-table th {
+    cursor: pointer; 
+    user-select: none;
+    position: relative;
+    padding-right: 30px !important; 
+}
+
+/* Ícones de Ordenação */
+#data-table th.sortable::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.3;
+}
+
+/* Estilo para Indicar Ordem Crescente (Ascendente) */
+#data-table th.asc::after {
+    content: '▲';
+    opacity: 1;
+    color: #004aad;
+}
+
+/* Estilo para Indicar Ordem Decrescente (Descendente) */
+#data-table th.desc::after {
+    content: '▼';
+    opacity: 1;
+    color: #004aad;
+}
+
+/* --------------------------------------------------- */
+/* 6. RESPONSIVIDADE */
 /* --------------------------------------------------- */
 
 @media (max-width: 768px) {
@@ -169,5 +225,13 @@ a {
     
     .button-container {
         gap: 15px;
+    }
+
+    .data-filter-container {
+        justify-content: center;
+    }
+    
+    .data-filter-container input[type="search"] {
+        width: 100%;
     }
 }
