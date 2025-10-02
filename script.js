@@ -90,7 +90,6 @@ async function initializeReportPage() {
                 renderCharts(allData, baseName); 
                 displayTable(allData); 
                 
-                // NOVO: Apenas o listener do input de busca (elemento persistente) é anexado aqui.
                 attachSearchListener();
             },
             error: function(error) {
@@ -148,13 +147,12 @@ function updateTableDisplay() {
         dataToDisplay = sortData(dataToDisplay, currentSort.column, currentSort.direction);
     }
 
-    // A função displayTable irá anexar os novos listeners de ordenação
     displayTable(dataToDisplay);
 }
 
 
 // =========================================================
-// 4. FUNÇÃO DE VISUALIZAÇÃO DA TABELA (MODIFICADA)
+// 4. FUNÇÃO DE VISUALIZAÇÃO DA TABELA
 // =========================================================
 function displayTable(data) {
     const table = document.getElementById('data-table');
@@ -171,7 +169,6 @@ function displayTable(data) {
     
     const columnNames = Object.keys(allData[0]);
 
-    // Cria e insere o cabeçalho (Thead)
     let thead = table.createTHead();
     let row = thead.insertRow();
     
@@ -179,7 +176,6 @@ function displayTable(data) {
         let th = document.createElement('th');
         th.textContent = key;
         
-        // Adiciona classe 'sortable' e o estado atual da ordenação
         th.classList.add('sortable');
         if (currentSort.column === key) {
             th.classList.add(currentSort.direction);
@@ -188,10 +184,8 @@ function displayTable(data) {
         row.appendChild(th);
     });
     
-    // NOVO: ANEXA OS LISTENERS DE ORDENAÇÃO AQUI, IMEDIATAMENTE APÓS CRIAR O THEAD.
     attachSortingListenersToHeaders();
 
-    // Cria e insere o corpo da tabela (Tbody)
     let tbody = table.createTBody();
     data.forEach(item => {
         let row = tbody.insertRow();
@@ -204,18 +198,16 @@ function displayTable(data) {
 
 
 // =========================================================
-// 5. LIGAÇÃO DE EVENTOS (Separada e Corrigida)
+// 5. LIGAÇÃO DE EVENTOS (Corrigida)
 // =========================================================
 
-/**
- * NOVO: Anexa os listeners de ordenação aos cabeçalhos recém-criados.
- */
 function attachSortingListenersToHeaders() {
     const tableHeaders = document.querySelectorAll('#data-table th');
     
     tableHeaders.forEach(header => {
         header.addEventListener('click', function() {
-            const column = header.textContent;
+            // CORREÇÃO APLICADA: Usa .trim() para remover espaços e garantir que a comparação seja precisa.
+            const column = header.textContent.trim(); 
             
             if (currentSort.column === column) {
                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
@@ -229,9 +221,6 @@ function attachSortingListenersToHeaders() {
     });
 }
 
-/**
- * NOVO: Anexa o listener de pesquisa (executado uma vez na inicialização).
- */
 function attachSearchListener() {
     const searchInput = document.getElementById('data-search-input');
     if (searchInput) {
@@ -241,7 +230,7 @@ function attachSearchListener() {
 
 
 // =========================================================
-// 6. FUNÇÕES DE GRÁFICOS E PDF (Mantidas)
+// 6. FUNÇÕES DE GRÁFICOS E PDF (Omitidas por brevidade, mas devem ser mantidas)
 // =========================================================
 function renderCharts(data, baseName) {
     generateChart(data, baseName, 'myChart', 'bar'); 
@@ -249,6 +238,7 @@ function renderCharts(data, baseName) {
 }
 
 function generateChart(data, baseName, canvasId, chartType) {
+    // ... (Mantenha o código completo desta função) ...
     let chartInstance = (canvasId === 'myChart') ? myChart : myChart2;
     if (chartInstance) { chartInstance.destroy(); }
     if (data.length < 2 || !data[0]) return;
@@ -316,6 +306,7 @@ function generateChart(data, baseName, canvasId, chartType) {
 }
 
 function exportToPDF() {
+    // ... (Mantenha o código completo desta função) ...
     if (!myChart) { alert("Gráfico principal não está pronto."); return; }
     const chartsToProcess = [{ chart: myChart, canvasId: 'myChart' }, { chart: myChart2, canvasId: 'myChart2' }].filter(item => item.chart !== null);
     const originalStates = [];
