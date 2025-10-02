@@ -234,4 +234,35 @@ a {
     .data-filter-container input[type="search"] {
         width: 100%;
     }
+/* style.css - ADIÇÕES PARA ESTILO DE CARTÃO NO DASHBOARD */
+
+.report-card {
+    /* Base do Cartão: Flutuante e Arredondado */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    padding: 25px;
+    text-align: center;
+    width: 250px; /* Largura fixa para os cartões */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    border: 1px solid #f0f0f0;
 }
+
+.report-card:hover {
+    transform: translateY(-5px); /* Efeito de elevação ao passar o mouse */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Redefine o estilo do botão dentro do cartão */
+.report-card .data-button {
+    /* Garante que o botão use a largura total do cartão (menos padding) */
+    width: 100%; 
+    min-width: unset;
+    margin-top: 15px; 
+}
+
