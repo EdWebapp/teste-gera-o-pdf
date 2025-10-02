@@ -1,22 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nome do Relatório</title> 
-    
-    <link rel="stylesheet" href="style.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    
-    <script src="script.js" defer></script>
-</head>
-<body> <h1 id="report-header"></h1>
+<body> 
+    <h1 id="report-header"></h1>
     
     <div class="report-actions">
         <a href="index.html" class="back-link">
@@ -28,9 +11,16 @@
     
     <hr>
     
-    <h2>Gráfico</h2>
-    <div class="chart-container">
+    <h2>Gráfico Primário</h2>
+    <div class="chart-container" data-chart-id="myChart">
         <canvas id="myChart"></canvas>
+    </div>
+    
+    <hr>
+
+    <h2>Gráfico Secundário (Agregação Alternativa)</h2>
+    <div class="chart-container" data-chart-id="myChart2">
+        <canvas id="myChart2"></canvas>
     </div>
     
     <hr>
@@ -38,4 +28,3 @@
     <h2>Dados Brutos</h2>
     <table id="data-table"></table>
 </body>
-</html>
