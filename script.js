@@ -1,7 +1,7 @@
-// script.js
+// script.js - MODIFICADO PARA SUPORTE A DOIS GRÁFICOS E PDF MULTI-CHART
 
 // =========================================================
-// 1. DICIONÁRIO DE DADOS
+// 1. DICIONÁRIO DE DADOS (Sem Alterações)
 // =========================================================
 const DATABASE = {
     'vendas': {
@@ -37,12 +37,12 @@ Email Mkt,4500,150,60`
 };
 
 let myChart = null; 
+let myChart2 = null; // NOVO: Variável para o segundo gráfico
 
 // =========================================================
-// 2. FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO (Corrigida para usar URL)
+// 2. FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO (Pequena Alteração)
 // =========================================================
 async function initializeReportPage() {
-    // CORRIGIDO: Lendo o parâmetro 'base' da URL (ex: ?base=clientes)
     const urlParams = new URLSearchParams(window.location.search);
     const baseName = urlParams.get('base');
 
@@ -84,7 +84,7 @@ async function initializeReportPage() {
             complete: function(results) {
                 const data = results.data.filter(row => Object.values(row).some(val => val !== null && val !== ''));
                 displayTable(data); 
-                generateChart(data, baseName); 
+                renderCharts(data, baseName); // Chamada para a nova função de renderização
             },
             error: function(error) {
                 console.error("Erro no Papa Parse:", error);
@@ -126,22 +126,85 @@ function displayTable(data) {
 }
 
 // =========================================================
-// 4. FUNÇÃO DE GERAÇÃO DO GRÁFICO (Sem Alterações)
+// 4. FUNÇÃO DE GERAÇÃO DOS GRÁFICOS (COMPLETAMENTE REFATORADA)
 // =========================================================
-function generateChart(data, baseName) {
-    if (myChart) {
-        myChart.destroy();
+
+/**
+ * Função Wrapper para renderizar todos os gráficos necessários.
+ */
+function renderCharts(data, baseName) {
+    // Gráfico 1: Primário (Coluna 1 vs Coluna 2) - Tipo Bar
+    generateChart(data, baseName, 'myChart', 'bar'); 
+
+    // Gráfico 2: Secundário (Agregação alternativa) - Tipo Doughnut (Pizza)
+    generateChart(data, baseName, 'myChart2', 'doughnut'); 
+}
+
+/**
+ * Função centralizada para configurar e renderizar um gráfico.
+ */
+function generateChart(data, baseName, canvasId, chartType) {
+    
+    let chartInstance = (canvasId === 'myChart') ? myChart : myChart2;
+
+    if (chartInstance) {
+        chartInstance.destroy();
     }
 
     if (data.length < 2 || !data[0]) return;
 
     const columnNames = Object.keys(data[0]);
 
-    const isVendasTest = (baseName === 'vendas' && columnNames.includes('Valor') && columnNames.includes('Produto'));
-    
-    const labelColForChart = isVendasTest ? 'Produto' : columnNames[0]; 
-    const valueColForChart = isVendasTest ? 'Valor' : columnNames[1]; 
-    
+    // ----------------------------------------------------
+    // 1. Definição das Colunas e Estilos
+    // ----------------------------------------------------
+
+    let labelColForChart, valueColForChart;
+    let titlePrefix;
+    let backgroundColor;
+    let borderColor;
+
+    if (canvasId === 'myChart') {
+        // Lógica do gráfico primário (Original: Valor por Produto)
+        const isVendasTest = (baseName === 'vendas' && columnNames.includes('Valor') && columnNames.includes('Produto'));
+        labelColForChart = isVendasTest ? 'Produto' : columnNames[0]; 
+        valueColForChart = isVendasTest ? 'Valor' : columnNames[1]; 
+        titlePrefix = 'Visualização Primária:';
+        backgroundColor = 'rgba(54, 162, 235, 0.7)'; // Azul
+        borderColor = 'rgba(54, 162, 235, 1)';
+        
+    } else if (canvasId === 'myChart2') {
+        // Lógica para o novo gráfico (Agregação Secundária)
+        
+        if (baseName === 'vendas' && columnNames.includes('Valor') && columnNames.includes('Regiao')) {
+            // Regra Específica para Vendas: Valor Agregado por Região
+            labelColForChart = 'Regiao';
+            valueColForChart = 'Valor';
+        } else if (columnNames.length > 2) {
+            // Regra Geral: Coluna 1 (Rótulo) vs Coluna 3 (Valor)
+            labelColForChart = columnNames[0]; 
+            valueColForChart = columnNames[2]; 
+        } else {
+            // Não há dados suficientes para o segundo gráfico
+            return;
+        }
+
+        titlePrefix = 'Visualização Secundária:';
+        // Cores Múltiplas para Gráfico de Pizza/Doughnut
+        backgroundColor = [
+            'rgba(255, 99, 132, 0.7)', 
+            'rgba(255, 206, 86, 0.7)', 
+            'rgba(75, 192, 192, 0.7)', 
+            'rgba(153, 102, 255, 0.7)', 
+            'rgba(255, 159, 64, 0.7)', 
+            'rgba(200, 200, 200, 0.7)' 
+        ];
+        borderColor = 'rgba(255, 255, 255, 1)'; 
+    }
+
+    // ----------------------------------------------------
+    // 2. Agregação dos Dados
+    // ----------------------------------------------------
     const aggregatedData = data.reduce((acc, row) => {
         const key = String(row[labelColForChart]);
         const value = Number(row[valueColForChart]);
@@ -154,13 +217,12 @@ function generateChart(data, baseName) {
     const labels = Object.keys(aggregatedData);
     const values = Object.values(aggregatedData);
 
-    let chartType = 'bar';
-    let backgroundColor = 'rgba(54, 162, 235, 0.7)';
-    let borderColor = 'rgba(54, 162, 235, 1)';
+    // ----------------------------------------------------
+    // 3. Renderização do Chart.js
+    // ----------------------------------------------------
+    const ctx = document.getElementById(canvasId).getContext('2d');
     
-    const ctx = document.getElementById('myChart').getContext('2d');
-    
-    myChart = new Chart(ctx, { 
+    chartInstance = new Chart(ctx, { 
         type: chartType, 
         data: {
             labels: labels, 
@@ -169,88 +231,142 @@ function generateChart(data, baseName) {
                 data: values, 
                 backgroundColor: backgroundColor,
                 borderColor: borderColor,
-                borderWidth: 1,
+                borderWidth: (chartType === 'doughnut') ? 2 : 1,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
+            scales: (chartType === 'doughnut') ? {} : { // Sem scales para doughnut
                 y: { beginAtZero: true, title: { display: true, text: valueColForChart } },
                 x: { title: { display: true, text: labelColForChart } }
             },
             plugins: {
                 title: {
                     display: true,
-                    text: `Visualização Agregada: ${valueColForChart} por ${labelColForChart}`
+                    text: `${titlePrefix} ${valueColForChart} por ${labelColForChart}`
+                },
+                legend: {
+                    display: (chartType === 'doughnut'), // Exibe legenda apenas para doughnut
+                    position: 'right',
                 }
             }
         }
     });
+
+    // Atualiza a variável global
+    if (canvasId === 'myChart') {
+        myChart = chartInstance;
+    } else {
+        myChart2 = chartInstance;
+    }
 }
 
+
 // =========================================================
-// 5. FUNÇÃO DE EXPORTAÇÃO DE PDF
+// 5. FUNÇÃO DE EXPORTAÇÃO DE PDF (MODIFICADA para Multi-Chart)
 // =========================================================
 function exportToPDF() {
     
     if (!myChart) {
-        alert("Gráfico não está pronto.");
+        alert("Gráfico principal não está pronto.");
         return;
     }
     
+    // Lista de todos os gráficos a serem processados
+    const chartsToProcess = [
+        { chart: myChart, canvasId: 'myChart' },
+        { chart: myChart2, canvasId: 'myChart2' }
+    ].filter(item => item.chart !== null); // Remove gráficos nulos (se o myChart2 não foi gerado)
+
     // Variáveis de Estado para Restauração
-    const chartContainer = document.querySelector('.chart-container');
-    const chartCanvas = document.getElementById('myChart');
-    const originalBoxShadow = chartContainer.style.boxShadow;
-    const originalResponsive = myChart.options.responsive;
+    const originalStates = [];
 
     // --- PRÉ-CAPTURA: Estabilização do Canvas e Estilo ---
-    try {
-        // 1. Desativa a responsividade e força o redimensionamento
-        myChart.options.responsive = false; 
-        myChart.resize(); 
-        
-        // 2. Remove a sombra que causa falha no html2canvas
-        chartContainer.style.boxShadow = 'none';
+    chartsToProcess.forEach(item => {
+        const chart = item.chart;
+        // Pega o container usando o novo atributo data-chart-id do HTML
+        const container = document.querySelector(`[data-chart-id="${item.canvasId}"]`); 
 
-    } catch (e) {
-        console.error("Erro ao preparar o gráfico para PDF:", e);
+        // Salva estados originais
+        originalStates.push({
+            chart: chart,
+            container: container,
+            originalBoxShadow: container ? container.style.boxShadow : null,
+            originalResponsive: chart.options.responsive
+        });
+        
+        // Aplica modificações (remove sombra, desativa responsividade)
+        try {
+            if (container) {
+                container.style.boxShadow = 'none';
+            }
+            chart.options.responsive = false; 
+            chart.resize(); 
+        } catch (e) {
+            console.error(`Erro ao preparar o gráfico ${item.canvasId} para PDF:`, e);
+        }
+    });
+
+    // Função assíncrona para capturar e adicionar cada gráfico
+    async function captureAndAddCharts(doc, y_offset) {
+        
+        let current_y_offset = y_offset;
+
+        for (const item of chartsToProcess) {
+            const chartCanvas = document.getElementById(item.canvasId);
+
+            if (chartCanvas) {
+                doc.setFontSize(14);
+                // Adiciona um título descritivo antes do gráfico
+                doc.text(`Gráfico ${item.canvasId === 'myChart' ? 'Primário' : 'Secundário'}`, 10, current_y_offset);
+                current_y_offset += 10;
+                
+                const canvas = await html2canvas(chartCanvas, { 
+                    backgroundColor: '#ffffff' 
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 190; 
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+
+                // Adiciona uma nova página se o gráfico não couber
+                if (current_y_offset + imgHeight > doc.internal.pageSize.height - 20) {
+                    doc.addPage();
+                    current_y_offset = 20;
+                }
+                
+                doc.addImage(imgData, 'PNG', 10, current_y_offset, imgWidth, imgHeight);
+                current_y_offset += imgHeight + 10; 
+            }
+        }
+        return current_y_offset;
     }
 
-    // --- CAPTURA ---
-    html2canvas(chartCanvas, { 
-        backgroundColor: '#ffffff' 
-    }).then(canvas => {
-        
-        // --- PÓS-CAPTURA: Restauração do Canvas e Sombra ---
-        myChart.options.responsive = originalResponsive;
-        myChart.resize();
-        chartContainer.style.boxShadow = originalBoxShadow; 
 
-        // --- GERAÇÃO DO PDF ---
-        // CORRIGIDO: Acessa o construtor diretamente via window.jspdf.jsPDF, que é a forma mais robusta 
-        // de instanciar o jsPDF quando o UMD está sendo usado.
-        const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
-        
-        const pageTitle = document.getElementById('report-header').textContent;
-        const filename = pageTitle.replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '') + '.pdf';
-        
-        doc.setFontSize(16);
-        doc.text(pageTitle, 10, 20); 
-        
-        let y_offset = 30; 
-        
-        // Adiciona Gráfico
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 190; 
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        doc.addImage(imgData, 'PNG', 10, y_offset, imgWidth, imgHeight);
-        y_offset += imgHeight + 10; 
+    // --- GERAÇÃO DO PDF ---
+    const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+    
+    const pageTitle = document.getElementById('report-header').textContent;
+    const filename = pageTitle.replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '') + '.pdf';
+    
+    doc.setFontSize(16);
+    doc.text(pageTitle, 10, 20); 
+    
+    let y_offset = 30; 
+
+    // Captura e Adiciona Gráficos
+    captureAndAddCharts(doc, y_offset).then((new_y_offset) => {
+        y_offset = new_y_offset;
 
         // Adiciona Tabela
         const tableElement = document.getElementById('data-table');
-        // O método autoTable só funciona se o plugin jspdf-autotable for carregado
+        
+        if (y_offset > doc.internal.pageSize.height - 40) {
+             doc.addPage();
+             y_offset = 20;
+        }
+
         doc.autoTable({
             startY: y_offset,
             html: tableElement,
@@ -266,27 +382,30 @@ function exportToPDF() {
         doc.save(filename);
 
     }).catch(error => {
-        // Garante que o estado seja restaurado mesmo em caso de falha na captura
-        myChart.options.responsive = originalResponsive;
-        myChart.resize();
-        chartContainer.style.boxShadow = originalBoxShadow; 
-        
-        console.error("Erro na geração do PDF:", error);
-        alert("Falha na geração do PDF. Tente clicar no botão novamente (problema de sincronização/carregamento).");
+        console.error("Erro na geração do PDF (Multi-Chart):", error);
+    }).finally(() => {
+        // --- PÓS-CAPTURA: Restauração do Estado ---
+        originalStates.forEach(item => {
+            try {
+                item.chart.options.responsive = item.originalResponsive;
+                item.chart.resize();
+                if (item.container) {
+                    item.container.style.boxShadow = item.originalBoxShadow;
+                }
+            } catch (e) {
+                 console.error("Erro na restauração do estado:", e);
+            }
+        });
     });
 }
 
 // =========================================================
-// 6. LIGAÇÃO DE EVENTOS
+// 6. LIGAÇÃO DE EVENTOS (Sem Alterações)
 // =========================================================
 
-/**
- * Verifica e aguarda o carregamento das bibliotecas de PDF.
- */
 function waitForPdfLibraries() {
     return new Promise((resolve) => {
         const check = setInterval(() => {
-            // Verifica a disponibilidade do objeto jsPDF e do html2canvas
             if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') {
                 clearInterval(check);
                 resolve(); 
@@ -295,9 +414,6 @@ function waitForPdfLibraries() {
     });
 }
 
-/**
- * Habilita o botão de PDF apenas após a confirmação do carregamento das libs.
- */
 async function attachPdfListener() {
     const exportButton = document.getElementById('export-pdf-button');
     if (exportButton) {
@@ -312,7 +428,6 @@ async function attachPdfListener() {
     }
 }
 
-// Inicia a aplicação após o DOM carregar completamente
 document.addEventListener('DOMContentLoaded', () => {
     initializeReportPage();
     attachPdfListener(); 
