@@ -9,26 +9,42 @@
 </head>
 <body>
     <h1>Dashboard de Relatórios</h1>
-    <p>Selecione a base de dados para visualizar o relatório completo:</p>
+    <p>Selecione a base de dados para visualizar o relatório completo e as ferramentas de análise:</p>
     
     <hr>
 
     <div class="button-container">
-        <a href="vendas.html?base=vendas">
-            <button class="data-button">Relatório de Vendas</button>
-        </a>
+        <div class="report-card">
+            <h3>Relatório de Vendas</h3>
+            <p>Análise de transações, valor e produto.</p>
+            <a href="vendas.html?base=vendas">
+                <button class="data-button">Ver Detalhes</button>
+            </a>
+        </div>
         
-        <a href="estoque.html?base=estoque">
-            <button class="data-button">Relatório de Estoque</button>
-        </a>
+        <div class="report-card">
+            <h3>Relatório de Estoque</h3>
+            <p>Inventário de produtos, quantidades e preços.</p>
+            <a href="estoque.html?base=estoque">
+                <button class="data-button">Ver Detalhes</button>
+            </a>
+        </div>
         
-        <a href="clientes.html?base=clientes">
-            <button class="data-button">Base de Clientes</button>
-        </a>
+        <div class="report-card">
+            <h3>Base de Clientes</h3>
+            <p>Informações de cadastro e total comprado.</p>
+            <a href="clientes.html?base=clientes">
+                <button class="data-button">Ver Detalhes</button>
+            </a>
+        </div>
         
-        <a href="marketing.html?base=marketing">
-            <button class="data-button">Desempenho de Marketing</button>
-        </a>
+        <div class="report-card">
+            <h3>Desempenho de Marketing</h3>
+            <p>Cliques, custos e taxa de conversão.</p>
+            <a href="marketing.html?base=marketing">
+                <button class="data-button">Ver Detalhes</button>
+            </a>
+        </div>
     </div>
     
 </body>
