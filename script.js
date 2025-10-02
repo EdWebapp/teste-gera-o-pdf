@@ -1,4 +1,4 @@
-// script.js - VERSÃO FINAL COM MULTI-CHART, FILTRAGEM E ORDENAÇÃO
+// script.js - VERSÃO FINAL (COM CORREÇÃO DE LISTENER DE ORDENAÇÃO)
 
 // =========================================================
 // 1. DICIONÁRIO E VARIÁVEIS DE ESTADO
@@ -39,8 +39,8 @@ Email Mkt,4500,150,60`
 let myChart = null; 
 let myChart2 = null; 
 
-let allData = []; // Armazena os dados brutos originais (para filtro/sort)
-let currentSort = { column: null, direction: 'asc' }; // Estado atual da ordenação
+let allData = [];
+let currentSort = { column: null, direction: 'asc' };
 
 // =========================================================
 // 2. FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
@@ -85,15 +85,13 @@ async function initializeReportPage() {
             dynamicTyping: true,
             skipEmptyLines: true,
             complete: function(results) {
-                // Filtra linhas nulas
                 allData = results.data.filter(row => Object.values(row).some(val => val !== null && val !== ''));
                 
-                // Exibe gráficos e tabela
                 renderCharts(allData, baseName); 
                 displayTable(allData); 
                 
-                // NOVO: Adiciona listeners de ordenação e pesquisa
-                attachTableListeners();
+                // NOVO: Apenas o listener do input de busca (elemento persistente) é anexado aqui.
+                attachSearchListener();
             },
             error: function(error) {
                 console.error("Erro no Papa Parse:", error);
@@ -107,10 +105,6 @@ async function initializeReportPage() {
 // =========================================================
 // 3. FUNÇÕES DE FILTRAGEM E ORDENAÇÃO
 // =========================================================
-
-/**
- * Filtra os dados com base no texto de pesquisa.
- */
 function filterData(data, searchTerm) {
     if (!searchTerm) {
         return data;
@@ -124,9 +118,6 @@ function filterData(data, searchTerm) {
     });
 }
 
-/**
- * Ordena os dados com base na coluna e direção atuais.
- */
 function sortData(data, column, direction) {
     
     return data.sort((a, b) => {
@@ -147,28 +138,23 @@ function sortData(data, column, direction) {
     });
 }
 
-/**
- * Aplica filtros e ordenação e redesenha a tabela.
- */
 function updateTableDisplay() {
     const searchInput = document.getElementById('data-search-input');
     const searchTerm = searchInput ? searchInput.value : '';
 
-    // 1. Aplicar Filtro
     let dataToDisplay = filterData([...allData], searchTerm);
 
-    // 2. Aplicar Ordenação
     if (currentSort.column) {
         dataToDisplay = sortData(dataToDisplay, currentSort.column, currentSort.direction);
     }
 
-    // 3. Redesenhar Tabela
+    // A função displayTable irá anexar os novos listeners de ordenação
     displayTable(dataToDisplay);
 }
 
 
 // =========================================================
-// 4. FUNÇÃO DE VISUALIZAÇÃO DA TABELA
+// 4. FUNÇÃO DE VISUALIZAÇÃO DA TABELA (MODIFICADA)
 // =========================================================
 function displayTable(data) {
     const table = document.getElementById('data-table');
@@ -202,6 +188,9 @@ function displayTable(data) {
         row.appendChild(th);
     });
     
+    // NOVO: ANEXA OS LISTENERS DE ORDENAÇÃO AQUI, IMEDIATAMENTE APÓS CRIAR O THEAD.
+    attachSortingListenersToHeaders();
+
     // Cria e insere o corpo da tabela (Tbody)
     let tbody = table.createTBody();
     data.forEach(item => {
@@ -215,7 +204,44 @@ function displayTable(data) {
 
 
 // =========================================================
-// 5. FUNÇÃO DE GERAÇÃO DOS GRÁFICOS (MULTI-CHART)
+// 5. LIGAÇÃO DE EVENTOS (Separada e Corrigida)
+// =========================================================
+
+/**
+ * NOVO: Anexa os listeners de ordenação aos cabeçalhos recém-criados.
+ */
+function attachSortingListenersToHeaders() {
+    const tableHeaders = document.querySelectorAll('#data-table th');
+    
+    tableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = header.textContent;
+            
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            updateTableDisplay(); 
+        });
+    });
+}
+
+/**
+ * NOVO: Anexa o listener de pesquisa (executado uma vez na inicialização).
+ */
+function attachSearchListener() {
+    const searchInput = document.getElementById('data-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', updateTableDisplay); 
+    }
+}
+
+
+// =========================================================
+// 6. FUNÇÕES DE GRÁFICOS E PDF (Mantidas)
 // =========================================================
 function renderCharts(data, baseName) {
     generateChart(data, baseName, 'myChart', 'bar'); 
@@ -223,68 +249,41 @@ function renderCharts(data, baseName) {
 }
 
 function generateChart(data, baseName, canvasId, chartType) {
-    
     let chartInstance = (canvasId === 'myChart') ? myChart : myChart2;
-
-    if (chartInstance) {
-        chartInstance.destroy();
-    }
-
+    if (chartInstance) { chartInstance.destroy(); }
     if (data.length < 2 || !data[0]) return;
-
     const columnNames = Object.keys(data[0]);
-
-    let labelColForChart, valueColForChart;
-    let titlePrefix;
-    let backgroundColor;
-    let borderColor;
+    let labelColForChart, valueColForChart, titlePrefix, backgroundColor, borderColor;
 
     if (canvasId === 'myChart') {
-        // Lógica do gráfico primário (Original: Valor por Produto)
         const isVendasTest = (baseName === 'vendas' && columnNames.includes('Valor') && columnNames.includes('Produto'));
         labelColForChart = isVendasTest ? 'Produto' : columnNames[0]; 
         valueColForChart = isVendasTest ? 'Valor' : columnNames[1]; 
         titlePrefix = 'Visualização Primária:';
-        backgroundColor = 'rgba(54, 162, 235, 0.7)'; // Azul
+        backgroundColor = 'rgba(54, 162, 235, 0.7)'; 
         borderColor = 'rgba(54, 162, 235, 1)';
-        
     } else if (canvasId === 'myChart2') {
-        // Lógica para o novo gráfico (Agregação Secundária)
-        
         if (baseName === 'vendas' && columnNames.includes('Valor') && columnNames.includes('Regiao')) {
             labelColForChart = 'Regiao';
             valueColForChart = 'Valor';
         } else if (columnNames.length > 2) {
             labelColForChart = columnNames[0]; 
             valueColForChart = columnNames[2]; 
-        } else {
-            return; // Não há dados suficientes para o segundo gráfico
-        }
-
+        } else { return; }
         titlePrefix = 'Visualização Secundária:';
-        backgroundColor = [
-            'rgba(255, 99, 132, 0.7)', 
-            'rgba(255, 206, 86, 0.7)', 
-            'rgba(75, 192, 192, 0.7)', 
-            'rgba(153, 102, 255, 0.7)', 
-            'rgba(255, 159, 64, 0.7)', 
-            'rgba(200, 200, 200, 0.7)' 
-        ];
+        backgroundColor = ['rgba(255, 99, 132, 0.7)', 'rgba(255, 206, 86, 0.7)', 'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)', 'rgba(200, 200, 200, 0.7)'];
         borderColor = 'rgba(255, 255, 255, 1)'; 
     }
 
     const aggregatedData = data.reduce((acc, row) => {
         const key = String(row[labelColForChart]);
         const value = Number(row[valueColForChart]);
-        if (key && !isNaN(value)) {
-            acc[key] = (acc[key] || 0) + value;
-        }
+        if (key && !isNaN(value)) { acc[key] = (acc[key] || 0) + value; }
         return acc;
     }, {});
 
     const labels = Object.keys(aggregatedData);
     const values = Object.values(aggregatedData);
-
     const ctx = document.getElementById(canvasId).getContext('2d');
     
     chartInstance = new Chart(ctx, { 
@@ -307,91 +306,38 @@ function generateChart(data, baseName, canvasId, chartType) {
                 x: { title: { display: true, text: labelColForChart } }
             },
             plugins: {
-                title: {
-                    display: true,
-                    text: `${titlePrefix} ${valueColForChart} por ${labelColForChart}`
-                },
-                legend: {
-                    display: (chartType === 'doughnut'), 
-                    position: 'right',
-                }
+                title: { display: true, text: `${titlePrefix} ${valueColForChart} por ${labelColForChart}` },
+                legend: { display: (chartType === 'doughnut'), position: 'right' }
             }
         }
     });
 
-    if (canvasId === 'myChart') {
-        myChart = chartInstance;
-    } else {
-        myChart2 = chartInstance;
-    }
+    if (canvasId === 'myChart') { myChart = chartInstance; } else { myChart2 = chartInstance; }
 }
 
-
-// =========================================================
-// 6. FUNÇÃO DE EXPORTAÇÃO DE PDF (MODIFICADA para Multi-Chart)
-// =========================================================
 function exportToPDF() {
-    
-    if (!myChart) {
-        alert("Gráfico principal não está pronto.");
-        return;
-    }
-    
-    const chartsToProcess = [
-        { chart: myChart, canvasId: 'myChart' },
-        { chart: myChart2, canvasId: 'myChart2' }
-    ].filter(item => item.chart !== null);
-
+    if (!myChart) { alert("Gráfico principal não está pronto."); return; }
+    const chartsToProcess = [{ chart: myChart, canvasId: 'myChart' }, { chart: myChart2, canvasId: 'myChart2' }].filter(item => item.chart !== null);
     const originalStates = [];
-
-    // --- PRÉ-CAPTURA: Estabilização do Canvas e Estilo ---
     chartsToProcess.forEach(item => {
         const chart = item.chart;
         const container = document.querySelector(`[data-chart-id="${item.canvasId}"]`); 
-
-        originalStates.push({
-            chart: chart,
-            container: container,
-            originalBoxShadow: container ? container.style.boxShadow : null,
-            originalResponsive: chart.options.responsive
-        });
-        
-        try {
-            if (container) {
-                container.style.boxShadow = 'none';
-            }
-            chart.options.responsive = false; 
-            chart.resize(); 
-        } catch (e) {
-            console.error(`Erro ao preparar o gráfico ${item.canvasId} para PDF:`, e);
-        }
+        originalStates.push({ chart: chart, container: container, originalBoxShadow: container ? container.style.boxShadow : null, originalResponsive: chart.options.responsive });
+        try { if (container) { container.style.boxShadow = 'none'; } chart.options.responsive = false; chart.resize(); } catch (e) { console.error(`Erro ao preparar o gráfico ${item.canvasId} para PDF:`, e); }
     });
 
     async function captureAndAddCharts(doc, y_offset) {
-        
         let current_y_offset = y_offset;
-
         for (const item of chartsToProcess) {
             const chartCanvas = document.getElementById(item.canvasId);
-
             if (chartCanvas) {
                 doc.setFontSize(14);
                 doc.text(`Gráfico ${item.canvasId === 'myChart' ? 'Primário' : 'Secundário'}`, 10, current_y_offset);
                 current_y_offset += 10;
-                
-                const canvas = await html2canvas(chartCanvas, { 
-                    backgroundColor: '#ffffff' 
-                });
-
+                const canvas = await html2canvas(chartCanvas, { backgroundColor: '#ffffff' });
                 const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 190; 
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-
-                if (current_y_offset + imgHeight > doc.internal.pageSize.height - 20) {
-                    doc.addPage();
-                    current_y_offset = 20;
-                }
-                
+                const imgWidth = 190; const imgHeight = canvas.height * imgWidth / canvas.width;
+                if (current_y_offset + imgHeight > doc.internal.pageSize.height - 20) { doc.addPage(); current_y_offset = 20; }
                 doc.addImage(imgData, 'PNG', 10, current_y_offset, imgWidth, imgHeight);
                 current_y_offset += imgHeight + 10; 
             }
@@ -399,99 +345,34 @@ function exportToPDF() {
         return current_y_offset;
     }
 
-
-    // --- GERAÇÃO DO PDF ---
     const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
-    
     const pageTitle = document.getElementById('report-header').textContent;
     const filename = pageTitle.replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '') + '.pdf';
-    
     doc.setFontSize(16);
     doc.text(pageTitle, 10, 20); 
-    
     let y_offset = 30; 
 
     captureAndAddCharts(doc, y_offset).then((new_y_offset) => {
         y_offset = new_y_offset;
-
         const tableElement = document.getElementById('data-table');
-        
-        if (y_offset > doc.internal.pageSize.height - 40) {
-             doc.addPage();
-             y_offset = 20;
-        }
-
+        if (y_offset > doc.internal.pageSize.height - 40) { doc.addPage(); y_offset = 20; }
         doc.autoTable({
-            startY: y_offset,
-            html: tableElement,
-            theme: 'striped',
-            headStyles: { fillColor: [54, 162, 235] },
-            margin: { left: 10, right: 10 },
-            didDrawPage: function (data) {
-                doc.setFontSize(10);
-                doc.text("Página " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
-            }
+            startY: y_offset, html: tableElement, theme: 'striped', headStyles: { fillColor: [54, 162, 235] }, margin: { left: 10, right: 10 },
+            didDrawPage: function (data) { doc.setFontSize(10); doc.text("Página " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10); }
         });
-        
         doc.save(filename);
-
-    }).catch(error => {
-        console.error("Erro na geração do PDF (Multi-Chart):", error);
+    }).catch(error => { console.error("Erro na geração do PDF (Multi-Chart):", error);
     }).finally(() => {
-        // --- PÓS-CAPTURA: Restauração do Estado ---
         originalStates.forEach(item => {
-            try {
-                item.chart.options.responsive = item.originalResponsive;
-                item.chart.resize();
-                if (item.container) {
-                    item.container.style.boxShadow = item.originalBoxShadow;
-                }
-            } catch (e) {
-                 console.error("Erro na restauração do estado:", e);
-            }
+            try { item.chart.options.responsive = item.originalResponsive; item.chart.resize(); if (item.container) { item.container.style.boxShadow = item.originalBoxShadow; } } catch (e) { console.error("Erro na restauração do estado:", e); }
         });
     });
 }
-
-// =========================================================
-// 7. LIGAÇÃO DE EVENTOS
-// =========================================================
-
-function attachTableListeners() {
-    const tableHeaders = document.querySelectorAll('#data-table th');
-    
-    // 1. Listener para ORDENAÇÃO
-    tableHeaders.forEach(header => {
-        header.addEventListener('click', function() {
-            const column = header.textContent;
-            
-            if (currentSort.column === column) {
-                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSort.column = column;
-                currentSort.direction = 'asc';
-            }
-
-            updateTableDisplay(); 
-        });
-    });
-    
-    // 2. Listener para FILTRAGEM (Pesquisa)
-    const searchInput = document.getElementById('data-search-input');
-    if (searchInput) {
-        // Usa 'input' para feedback imediato ou 'keyup' (como no último passo)
-        searchInput.addEventListener('input', updateTableDisplay); 
-    }
-}
-
 
 function waitForPdfLibraries() {
     return new Promise((resolve) => {
         const check = setInterval(() => {
-            if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') {
-                clearInterval(check);
-                resolve(); 
-            }
+            if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') { clearInterval(check); resolve(); }
         }, 100);
     });
 }
@@ -501,9 +382,7 @@ async function attachPdfListener() {
     if (exportButton) {
         exportButton.disabled = true;
         exportButton.textContent = 'Carregando PDF...';
-
         await waitForPdfLibraries();
-
         exportButton.disabled = false;
         exportButton.textContent = '⬇️ Exportar para PDF';
         exportButton.addEventListener('click', exportToPDF);
