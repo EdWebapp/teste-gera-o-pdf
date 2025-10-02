@@ -5,9 +5,9 @@
 /* --------------------------------------------------- */
 body {
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    margin: 0 auto; /* NOVO: Centraliza o bloco de conteúdo */
+    margin: 0 auto; /* Centraliza o bloco de conteúdo */
     padding: 40px; 
-    max-width: 1200px; /* NOVO: Limita a largura em telas grandes */
+    max-width: 1200px; /* Limita a largura em telas grandes */
     background-color: #f4f7f9; 
     color: #333;
     line-height: 1.6;
@@ -16,13 +16,20 @@ body {
 
 h1 {
     color: #004aad;
-    padding-bottom: 15px; /* MAIOR DESTAQUE: Aumenta o padding */
-    margin-bottom: 20px; /* MAIOR DESTAQUE: Aumenta o margin */
-    font-size: 2.8em; /* MAIOR DESTAQUE: Fonte maior */
-    font-weight: 700; /* MAIOR DESTAQUE: Fonte mais grossa */
-    text-transform: uppercase; /* MAIOR DESTAQUE: Texto em caixa alta */
-    border-bottom: 3px solid #007bff; /* MAIOR DESTAQUE: Borda mais grossa */
-    text-align: center; /* NOVO: Centraliza o texto do título */
+    padding-bottom: 15px; 
+    margin-bottom: 20px; 
+    font-size: 2.8em; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    border-bottom: 3px solid #007bff; 
+    text-align: center; /* Centraliza o texto do título */
+}
+
+/* NOVO: Centraliza o texto do subtítulo da página (index.html) */
+body > p {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 h2, h3 { 
@@ -56,7 +63,7 @@ hr {
 .button-container {
     display: flex;
     flex-wrap: wrap; 
-    justify-content: center; /* NOVO: Centraliza os cartões horizontalmente */
+    justify-content: center; /* Centraliza os cartões horizontalmente */
     gap: 20px;
     margin-top: 30px;
 }
@@ -96,7 +103,7 @@ hr {
     display: flex; 
     gap: 15px;
     margin-bottom: 30px;
-    justify-content: center; /* NOVO: Centraliza os botões de ação */
+    justify-content: center; /* Centraliza os botões de ação */
 }
 
 .data-button {
@@ -196,7 +203,7 @@ a {
 
 .data-filter-container {
     display: flex;
-    justify-content: center; /* NOVO: Centraliza o campo de busca */
+    justify-content: center; /* Centraliza o campo de busca */
     margin-bottom: 20px;
 }
 
