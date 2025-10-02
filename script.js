@@ -1,4 +1,4 @@
-// script.js - VERSÃO FINAL (COM CORREÇÃO DE LISTENER DE ORDENAÇÃO E FORMATAÇÃO DE DATA ROBUSTA)
+// script.js - VERSÃO FINAL (COM CORREÇÃO DE FORMATO DE DATA ROBUSTA)
 
 // =========================================================
 // 1. DICIONÁRIO E VARIÁVEIS DE ESTADO
@@ -193,11 +193,11 @@ function displayTable(data) {
             let cell = row.insertCell(); 
             let value = item[key] !== null && item[key] !== undefined ? item[key] : '';
             
-            // Lógica de formatação de data AAAA-MM-DD para DD/MM/AAAA
-            // Esta lógica DEVE ser a última coisa a acontecer com o valor, APÓS a ordenação.
-            if (key === 'Data' && typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                const parts = value.split('-'); 
-                value = `${parts[2]}/${parts[1]}/${parts[0]}`; 
+            // CORREÇÃO: Lógica de formatação de data AAAA-MM-DD para DD/MM/AAAA
+            // Checa se é string e se tem a estrutura de 3 partes separadas por hífen
+            if (key === 'Data' && typeof value === 'string' && value.split('-').length === 3) {
+                const parts = value.split('-'); // ["2024", "05", "01"]
+                value = `${parts[2]}/${parts[1]}/${parts[0]}`; // "01/05/2024"
             }
             
             cell.textContent = value; 
@@ -238,7 +238,7 @@ function attachSearchListener() {
 
 
 // =========================================================
-// 6. FUNÇÕES DE GRÁFICOS E PDF 
+// 6. FUNÇÕES DE GRÁFICOS E PDF (Mantidas)
 // =========================================================
 function renderCharts(data, baseName) {
     generateChart(data, baseName, 'myChart', 'bar'); 
