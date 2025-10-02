@@ -1,4 +1,4 @@
-// script.js - VERSÃO FINAL (COM CORREÇÃO DE LISTENER DE ORDENAÇÃO)
+// script.js - VERSÃO FINAL (COM CORREÇÃO DE LISTENER DE ORDENAÇÃO E FORMATAÇÃO DE DATA)
 
 // =========================================================
 // 1. DICIONÁRIO E VARIÁVEIS DE ESTADO
@@ -152,7 +152,7 @@ function updateTableDisplay() {
 
 
 // =========================================================
-// 4. FUNÇÃO DE VISUALIZAÇÃO DA TABELA
+// 4. FUNÇÃO DE VISUALIZAÇÃO DA TABELA (MODIFICADA PARA FORMATAR DATA)
 // =========================================================
 function displayTable(data) {
     const table = document.getElementById('data-table');
@@ -191,14 +191,22 @@ function displayTable(data) {
         let row = tbody.insertRow();
         columnNames.forEach(key => {
             let cell = row.insertCell(); 
-            cell.textContent = item[key] !== null && item[key] !== undefined ? item[key] : ''; 
+            let value = item[key] !== null && item[key] !== undefined ? item[key] : '';
+            
+            // NOVO: Lógica de formatação de data AAAA-MM-DD para DD/MM/AAAA
+            if (key === 'Data' && typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const parts = value.split('-'); // ["2024", "05", "01"]
+                value = `${parts[2]}/${parts[1]}/${parts[0]}`; // "01/05/2024"
+            }
+            
+            cell.textContent = value; 
         });
     });
 }
 
 
 // =========================================================
-// 5. LIGAÇÃO DE EVENTOS (Corrigida)
+// 5. LIGAÇÃO DE EVENTOS
 // =========================================================
 
 function attachSortingListenersToHeaders() {
@@ -206,7 +214,6 @@ function attachSortingListenersToHeaders() {
     
     tableHeaders.forEach(header => {
         header.addEventListener('click', function() {
-            // CORREÇÃO APLICADA: Usa .trim() para remover espaços e garantir que a comparação seja precisa.
             const column = header.textContent.trim(); 
             
             if (currentSort.column === column) {
@@ -230,7 +237,7 @@ function attachSearchListener() {
 
 
 // =========================================================
-// 6. FUNÇÕES DE GRÁFICOS E PDF (Omitidas por brevidade, mas devem ser mantidas)
+// 6. FUNÇÕES DE GRÁFICOS E PDF 
 // =========================================================
 function renderCharts(data, baseName) {
     generateChart(data, baseName, 'myChart', 'bar'); 
@@ -238,7 +245,6 @@ function renderCharts(data, baseName) {
 }
 
 function generateChart(data, baseName, canvasId, chartType) {
-    // ... (Mantenha o código completo desta função) ...
     let chartInstance = (canvasId === 'myChart') ? myChart : myChart2;
     if (chartInstance) { chartInstance.destroy(); }
     if (data.length < 2 || !data[0]) return;
@@ -306,7 +312,6 @@ function generateChart(data, baseName, canvasId, chartType) {
 }
 
 function exportToPDF() {
-    // ... (Mantenha o código completo desta função) ...
     if (!myChart) { alert("Gráfico principal não está pronto."); return; }
     const chartsToProcess = [{ chart: myChart, canvasId: 'myChart' }, { chart: myChart2, canvasId: 'myChart2' }].filter(item => item.chart !== null);
     const originalStates = [];
